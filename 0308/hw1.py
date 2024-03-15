@@ -4,7 +4,7 @@ import time
 #訂閱broker但並未將資料過濾
 import paho.mqtt.client as mqtt
 import json
-
+import random
 def publish(data):
     # connect
     client = mqtt.Client(callback_api_version = mqtt.CallbackAPIVersion.VERSION1)
@@ -12,13 +12,18 @@ def publish(data):
 
     # id should change everytime after publishing
     # let range of id in [1~9]
-    id = 0
-    while True:
-        id += 1
-        id %= 10
-        msg = "[{\"macAddr\":\"0000000020200002\",\"data\":\"" + data + "\",\"id\":\"0" + str(id) + "\",\"extra\":{\"port\":2,\"txpara\":\"2\"}}]"
-        client.publish("GIOT-GW/DL/000080029c0ff65e", msg)
-        time.sleep(5)
+    id = random.randint(1, 100)
+    msg = "[{\"macAddr\":\"0000000020200002\",\"data\":\"" + data + "\",\"id\":\"" + str(id) + "\",\"extra\":{\"port\":2,\"txpara\":\"2\"}}]"
+    client.publish("GIOT-GW/DL/000080029c0ff65e", msg)
+    time.sleep(5)
+    # id = 0
+    # while True:
+    #     id += 1
+    #     id %= 10
+    #     msg = "[{\"macAddr\":\"0000000020200002\",\"data\":\"" + data + "\",\"id\":\"0" + str(id) + "\",\"extra\":{\"port\":2,\"txpara\":\"2\"}}]"
+    #     client.publish("GIOT-GW/DL/000080029c0ff65e", msg)
+    #     time.sleep(5)
+    # print('publish')
     
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
@@ -36,7 +41,8 @@ def on_message(client, userdata, msg):
 
         int_ascii = float(byte_data.decode()) # convert bytes to integer ASCII
 
-        print(str(int_ascii))
+        # print(str(int_ascii))
+        print('ok')
 
         # judge
         if(int_ascii > 25.5):
