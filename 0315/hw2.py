@@ -5,6 +5,7 @@ import time
 import paho.mqtt.client as mqtt
 import json
 import random
+subscribe = 0
 def publish(data):
     # connect
     client = mqtt.Client(callback_api_version = mqtt.CallbackAPIVersion.VERSION1)
@@ -28,22 +29,28 @@ def on_message(client, userdata, msg):
     data = json.loads(msgStr[2:-1]) # choose the string we want and convert it to  json
 
     if(data[0]['macAddr']=="0000000020200002"): # filter other macAddr
-        hex_ascii_temperature = data[0]['temperature'] # get temperature data
-        hex_ascii_humidity = data[0]['humidity'] #get humidity data
+        global subscribe
+        subscribe += 1
+        hex_ascii = data[0]['data'] # get temperature and humidity data
 
-        byte_data_temperature = bytes.fromhex(hex_ascii_temperature) # convert hexadecimal ASCII temperature to bytes
-        byte_data_humidity = bytes.fromhex(hex_ascii_humidity) # convert hexadecimal ASCII humidity to bytes
+        byte_data = bytes.fromhex(hex_ascii) # convert hexadecimal ASCII temperature to bytes
 
+        byte_data = str(byte_data) # convert bytes to string 
 
-        int_ascii_temperature = float(byte_data_temperature.decode()) # convert bytes to integer ASCII temperature
-        int_ascii_humidity = float(byte_data_humidity.decode()) # convert bytes to integer ASCII humidity
+        number_1 = byte_data.find('+') # find index (+) 
+        temperature = byte_data[2:number_1] # find temperature
+        number_2 = byte_data.rfind('\'') # find index (') from right side 
+        humidity = byte_data[number_1+1:number_2] # find humidity
+    
+
+        float_temperature = float(temperature) # convert string to float temperature
+        float_humidity = float(humidity) # convert string to float humidity
+        
+        print('No.', subscribe, 'temperature :', float_temperature, 'humidity :', float_humidity)
         
 
-        # print(str(int_ascii))
-        print('ok')
-
         # judge
-        if(int_ascii_temperature > 30.5 or int_ascii_humidity > 75.5):
+        if(float_temperature > 30.5 or float_humidity > 75.5):
             publish('31')
         else:
             publish('30')
