@@ -16,12 +16,14 @@ def publish(data):
     id = random.randint(1, 100)
     msg = "[{\"macAddr\":\"0000000020200002\",\"data\":\"" + data + "\",\"id\":\"" + str(id) + "\",\"extra\":{\"port\":2,\"txpara\":\"2\"}}]"
     client.publish("GIOT-GW/DL/000080029c0ff65e", msg)
+    # client.publish("GIOT-GW/DL/00001c497b432075", msg)
     time.sleep(5)
 
     
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
     client.subscribe("GIOT-GW/UL/80029C1E38D2")
+    # client.subscribe("GIOT-GW/UL/1C497B45581D")
 
 def on_message(client, userdata, msg):
     
@@ -29,31 +31,34 @@ def on_message(client, userdata, msg):
     data = json.loads(msgStr[2:-1]) # choose the string we want and convert it to  json
 
     if(data[0]['macAddr']=="0000000020200002"): # filter other macAddr
-        global subscribe
-        subscribe += 1
+        
         hex_ascii = data[0]['data'] # get temperature and humidity data
+        if(hex_ascii):
+            global subscribe
+            subscribe += 1
+            print(hex_ascii)
+            byte_data = bytes.fromhex(hex_ascii) # convert hexadecimal ASCII temperature to bytes
 
-        byte_data = bytes.fromhex(hex_ascii) # convert hexadecimal ASCII temperature to bytes
+            byte_data = str(byte_data) # convert bytes to string 
+            # print(byte_data)
 
-        byte_data = str(byte_data) # convert bytes to string 
-
-        number_1 = byte_data.find('+') # find index (+) 
-        temperature = byte_data[2:number_1] # find temperature
-        number_2 = byte_data.rfind('\'') # find index (') from right side 
-        humidity = byte_data[number_1+1:number_2] # find humidity
-    
-
-        float_temperature = float(temperature) # convert string to float temperature
-        float_humidity = float(humidity) # convert string to float humidity
-        
-        print('No.', subscribe, 'temperature :', float_temperature, 'humidity :', float_humidity)
+            number_1 = byte_data.find('+') # find index (+) 
+            temperature = byte_data[2:number_1] # find temperature
+            number_2 = byte_data.rfind('\'') # find index (') from right side 
+            humidity = byte_data[number_1+1:number_2] # find humidity
         
 
-        # judge
-        if(float_temperature > 30.5 or float_humidity > 75.5):
-            publish('31')
-        else:
-            publish('30')
+            float_temperature = float(temperature) # convert string to float temperature
+            float_humidity = float(humidity) # convert string to float humidity
+            
+            print('No.', subscribe, 'temperature :', float_temperature, 'humidity :', float_humidity)
+            
+
+            # judge
+            if(float_temperature > 30.5 or float_humidity > 75.5):
+                publish('31')
+            else:
+                publish('30')
     
     
     
