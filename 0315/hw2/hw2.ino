@@ -35,7 +35,7 @@ void setup() {
   while(!Serial1.available()>0){} 
   Serial.println(Serial1.readString());
   delay(500);     
-  Serial.println("==============");
+  // Serial.println("==============");
 
   if (!HS300x.begin()) {
     Serial.println("Failed to initialize humidity temperature sensor!");
@@ -46,6 +46,7 @@ void setup() {
 void loop() {
   String data;
   if(uplink_count < 100){
+    Serial.println("==============");
     Serial.println("start measure");
     // read all the sensor values
     float temperature = HS300x.readTemperature();
@@ -98,12 +99,14 @@ void loop() {
 
     String instruction = "mac tx ucnf 2 " + uplink_temp + divider + uplink_hum;
 
-  
+    uplink_count += 1;
+    Serial.println("第" + String(uplink_count) + "次uplink");
+    // Serial.println(sensorValue);  
     Serial.println(instruction);   
     Serial1.write((const uint8_t*)instruction.c_str(), instruction.length());
 
-    uplink_count += 1;
-
+    
+    
     while(!Serial1.available()>0){}
     data=Serial1.readString();
     // Serial.println(data);
@@ -115,6 +118,8 @@ void loop() {
       if(pos1==-1)
       {
         String info=data.substring(pos+9,data.length());
+        downlink_count += 1;
+        Serial.println("第" + String(downlink_count) + "次downlink");
         Serial.print("xxx(");
         Serial.print(info);
         Serial.println(")");
@@ -122,6 +127,8 @@ void loop() {
       else
       {
         String info=data.substring(pos+9,pos1-4);
+        downlink_count += 1;
+        Serial.println("第" + String(downlink_count) + "次downlink");
         Serial.print("yyy(");
         Serial.print(info);
         Serial.println(")");      
